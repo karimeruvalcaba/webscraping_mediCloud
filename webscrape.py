@@ -12,6 +12,7 @@ def run_scraper(download_dir="Webscrapping"):
         os.makedirs(download_dir)
 
     options = Options()
+    options.headless = True
     options.set_preference("network.proxy.type", 0)
     options.set_preference("browser.download.folderList", 2)
     options.set_preference("browser.download.dir", download_dir)
