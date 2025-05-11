@@ -1,6 +1,7 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_file
 from webscrape import run_scraper
 from insert_meds import insert_prescriptions
+import os 
 
 app = Flask(__name__)
 
@@ -28,6 +29,21 @@ def insert():
         return jsonify({"status": "Insert done ✅"})
     except Exception as e:
         return jsonify({"status": "Insert failed", "error": str(e)})
+    
+@app.route("/list-files")
+def list_files():
+    folder = "Webscrapping"
+    files = os.listdir(folder) if os.path.exists(folder) else []
+    return {"files": files}
+
+@app.route("/download/<filename>")
+def download_file(filename):
+    filepath = os.path.join("Webscrapping", filename)
+    if os.path.exists(filepath):
+        return send_file(filepath, as_attachment=True)
+    else:
+        return {"error": "File not found"}, 404
 
 if __name__ == "__main__":
     app.run(debug=True)
+
