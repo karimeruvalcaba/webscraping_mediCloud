@@ -12,17 +12,18 @@ It’s deployed on [Render](https://render.com) and designed to:
 ---
 
 ## 🗂 Folder Structure
+```
 📁 Webscrapping/
-├── Recetas_Emitidas_2024.xls
-├── Recetas_Emitidas_2024.xls.meta.txt
-├── ...
-📄 app.py # Flask app with endpoints
-📄 webscrape.py # Scrapes files and metadata using BeautifulSoup
-📄 insert_meds.py # Cleans + loads data into MySQL
-📄 requirements.txt # All dependencies
-📄 .render.yaml # Deployment config
+│   ├── Recetas_Emitidas_2024.xls
+│   ├── Recetas_Emitidas_2024.xls.meta.txt
+│   └── ...
+├── app.py             # Flask app with endpoints
+├── webscrape.py       # Scrapes files and metadata using BeautifulSoup
+├── insert_meds.py     # Cleans + loads data into MySQL
+├── requirements.txt   # All dependencies
+└── .render.yaml       # Deployment config
+```
 
----
 
 ## 🚀 Endpoints
 
