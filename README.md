@@ -14,8 +14,10 @@ It’s deployed on [Render](https://render.com) and designed to:
 ## 🗂 Folder Structure
 ```
 📁 Webscrapping/
-│   ├── Recetas_Emitidas_2024.xls
+│   ├── Recetas_Emitidas_Abril-Diciembre_2023.xls
+│   ├── Recetas_Emitidas_Abril-Diciembre_2023.xls.meta.txt
 │   ├── Recetas_Emitidas_2024.xls.meta.txt
+│   ├── Recetas_Emitidas_2024.xls
 │   └── ...
 ├── app.py             # Flask app with endpoints
 ├── webscrape.py       # Scrapes files and metadata using BeautifulSoup
