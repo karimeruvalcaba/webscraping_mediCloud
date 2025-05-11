@@ -62,8 +62,7 @@ CREATE TABLE estadisticas_externas_lab (
   cantidad INT,
   UNIQUE (archivo, tipo, medicamento)
 );
-
----
+````
 
 ## 🔐 Environment Variables
 
@@ -75,8 +74,7 @@ MYSQL_PASSWORD=diogo1
 MYSQL_HOST=localhost    # or your ngrok host
 MYSQL_PORT=3306         # or your ngrok port
 MYSQL_DB=dummy_base
-
----
+````
 
 ## ☁️ Deployment on Render
 
@@ -93,5 +91,5 @@ MYSQL_DB=dummy_base
    gunicorn app:app
 ```
 6. Define all necessary environment variables in the Environment tab
-7. (Optional) Add a .render.yaml if needed for config as code
+7. (Optional) Add a `.render.yaml` if needed for config as code
 
