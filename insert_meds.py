@@ -13,7 +13,7 @@ engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}:{port}/{databa
 
 # 🧱 Ensure table exists
 create_table_sql = """
-CREATE TABLE IF NOT EXISTS estadisticas_externas_lab (
+CREATE TABLE IF NOT EXISTS Medicinas_externas_lab (
   id INT AUTO_INCREMENT PRIMARY KEY,
   archivo VARCHAR(255),
   tipo ENUM('top', 'bottom'),
