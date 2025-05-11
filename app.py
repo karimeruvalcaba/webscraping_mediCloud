@@ -14,7 +14,12 @@ def scrape():
         run_scraper()
         return jsonify({"status": "Scraping done ✅"})
     except Exception as e:
-        return jsonify({"status": "Scraping failed", "error": str(e)})
+        import traceback
+        return jsonify({
+            "status": "Scraping failed ❌",
+            "error": str(e),
+            "trace": traceback.format_exc()
+        }), 500
 
 @app.route("/run-insert")
 def insert():
