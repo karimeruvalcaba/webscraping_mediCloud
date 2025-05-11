@@ -46,8 +46,7 @@ Returns JSON like:
     "bottom": "⏭️ Already exists"
   }
 }
-
----
+```
 
 ## ⚙️ MySQL Setup
 
