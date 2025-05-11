@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS estadisticas_externas_lab (
 
 with engine.connect() as conn:
     conn.execute(text(create_table_sql))
-    print("✅ Table estadisticas_externas_lab created (or already exists).")
+    print("✅ Table Medicinas_externas_lab created (or already exists).")
 
 # 🧠 Main insert logic
 def insert_prescriptions(download_dir="Webscrapping"):
@@ -77,11 +77,11 @@ def insert_prescriptions(download_dir="Webscrapping"):
 
         with engine.connect() as conn:
             top_exists = conn.execute(
-                text("SELECT COUNT(*) FROM estadisticas_externas_lab WHERE archivo = :archivo AND tipo = 'top'"),
+                text("SELECT COUNT(*) FROM Medicinas_externas_lab WHERE archivo = :archivo AND tipo = 'top'"),
                 {"archivo": file}
             ).scalar() > 0
             bottom_exists = conn.execute(
-                text("SELECT COUNT(*) FROM estadisticas_externas_lab WHERE archivo = :archivo AND tipo = 'bottom'"),
+                text("SELECT COUNT(*) FROM Medicinas_externas_lab WHERE archivo = :archivo AND tipo = 'bottom'"),
                 {"archivo": file}
             ).scalar() > 0
 
@@ -93,7 +93,7 @@ def insert_prescriptions(download_dir="Webscrapping"):
                 "medicamento": top10.index,
                 "cantidad": top10.values
             })
-            top_df.to_sql("estadisticas_externas_lab", engine, if_exists="append", index=False)
+            top_df.to_sql("medicinas_externas_lab", engine, if_exists="append", index=False)
             result["top"] = "✅ Inserted"
         else:
             result["top"] = "⏭️ Already exists"
@@ -106,7 +106,7 @@ def insert_prescriptions(download_dir="Webscrapping"):
                 "medicamento": bottom10.index,
                 "cantidad": bottom10.values
             })
-            bottom_df.to_sql("estadisticas_externas_lab", engine, if_exists="append", index=False)
+            bottom_df.to_sql("Medicinas_externas_lab", engine, if_exists="append", index=False)
             result["bottom"] = "✅ Inserted"
         else:
             result["bottom"] = "⏭️ Already exists"
