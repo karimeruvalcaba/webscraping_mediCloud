@@ -1,8 +1,8 @@
 Flask
+gunicorn
+requests
+beautifulsoup4
 pandas
 sqlalchemy
 pymysql
 xlrd
-selenium
-gunicorn
-psycopg2-binary

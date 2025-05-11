@@ -1,86 +1,66 @@
 import os
-import time
-import urllib.request
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+import re
+import requests
+from bs4 import BeautifulSoup
 
 def run_scraper(download_dir="Webscrapping"):
     if not os.path.exists(download_dir):
         os.makedirs(download_dir)
 
-    options = Options()
-    options.headless = True
-    options.set_preference("network.proxy.type", 0)
-    options.set_preference("browser.download.folderList", 2)
-    options.set_preference("browser.download.dir", download_dir)
-    options.set_preference("browser.helperApps.neverAsk.saveToDisk",
-        "application/vnd.ms-excel,application/octet-stream,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    options.set_preference("pdfjs.disabled", True)
-    options.set_preference("browser.download.manager.showWhenStarting", False)
-    options.set_preference("dom.security.allow_insecure_downloads", True)
+    base_url = "https://datos.gob.mx"
+    main_url = f"{base_url}/busca/dataset/recursos-materiales-recetas"
 
-    driver = webdriver.Firefox(options=options)
-    driver.get("https://datos.gob.mx/busca/dataset/recursos-materiales-recetas")
+    print(f"🔍 Scraping main dataset page: {main_url}")
+    response = requests.get(main_url)
+    soup = BeautifulSoup(response.text, "html.parser")
 
-    try:
-        WebDriverWait(driver, 20).until(
-            EC.presence_of_all_elements_located((By.CLASS_NAME, "heading"))
-        )
+    # Get all <a class="heading" title="Recetas Emitidas...">
+    dataset_links = soup.find_all("a", class_="heading")
 
-        headings = driver.find_elements(By.CLASS_NAME, "heading")
-        datasets = []
-        for h in headings:
-            title = h.get_attribute("title")
-            href = h.get_attribute("href")
-            if title and href and "Recetas Emitidas" in title:
-                full_url = href if href.startswith("http") else "http://datos.gob.mx" + href
-                datasets.append((title, full_url))
+    datasets = []
+    for link in dataset_links:
+        title = link.get("title", "").strip()
+        href = link.get("href", "")
+        if "Recetas Emitidas" in title and href:
+            full_url = href if href.startswith("http") else base_url + href
+            datasets.append((title, full_url))
 
-        print(f"🔎 Found {len(datasets)} dataset(s) matching 'Recetas Emitidas'")
+    print(f"📦 Found {len(datasets)} matching datasets")
 
-        for title, url in datasets:
-            print(f"\n🔁 Navigating to: {url}")
-            driver.get(url)
+    for title, url in datasets:
+        print(f"\n🔁 Navigating to: {url}")
+        res = requests.get(url)
+        soup = BeautifulSoup(res.text, "html.parser")
 
-            try:
-                WebDriverWait(driver, 10).until(
-                    EC.presence_of_all_elements_located((By.TAG_NAME, "a"))
-                )
+        # Institution name
+        org_link = soup.find("a", href=re.compile("/busca/organization/"))
+        institucion = org_link.text.strip().upper() if org_link else "Desconocida"
+        print(f"🏥 Institution: {institucion}")
 
-                org_links = driver.find_elements(By.XPATH, "//a[contains(@href, '/busca/organization/')]")
-                if org_links:
-                    institucion = org_links[0].text.strip().upper()
-                    print(f"🏥 Institution: {institucion}")
-                else:
-                    institucion = "Desconocida"
-                    print("⚠️ Institution not found — fallback used.")
+        # Download link (looks like an <a> with .xls in href and 'Descargar' in text)
+        download_link = soup.find("a", href=re.compile(r"\.xls"), string=re.compile("Descargar", re.I))
 
-                # Download Excel
-                download_button = WebDriverWait(driver, 15).until(
-                    EC.element_to_be_clickable((By.XPATH, "//a[contains(text(),'Descargar') and contains(@href, '.xls')]"))
-                )
-                href = download_button.get_attribute("href")
-                base_name = title.replace(" ", "_") + ".xls"
-                renamed_path = os.path.join(download_dir, base_name)
+        if not download_link:
+            print("❌ No .xls download link found.")
+            continue
 
-                print(f"⬇️ Downloading from: {href}")
-                urllib.request.urlretrieve(href, renamed_path)
-                print(f"✅ Saved as: {renamed_path}")
+        file_url = download_link["href"]
+        if not file_url.startswith("http"):
+            file_url = base_url + file_url
 
-                # Save institution metadata
-                meta_path = os.path.join(download_dir, base_name + ".meta.txt")
-                with open(meta_path, "w", encoding="utf-8") as f:
-                    f.write(institucion)
+        filename = title.replace(" ", "_") + ".xls"
+        file_path = os.path.join(download_dir, filename)
 
-            except Exception as inner_e:
-                print(f"❌ Failed to download for: {title} → {inner_e}")
+        print(f"⬇️ Downloading: {file_url}")
+        try:
+            r = requests.get(file_url)
+            with open(file_path, "wb") as f:
+                f.write(r.content)
+            print(f"✅ Saved as: {file_path}")
 
-    except Exception as e:
-        print(f"❌ Global error: {e}")
-
-    finally:
-        driver.quit()
-        print("🧹 Browser closed.")
+            # Save institution name to meta file
+            meta_path = file_path + ".meta.txt"
+            with open(meta_path, "w", encoding="utf-8") as f:
+                f.write(institucion)
+        except Exception as e:
+            print(f"❌ Error downloading {file_url}: {e}")
