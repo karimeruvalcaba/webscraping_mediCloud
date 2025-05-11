@@ -93,3 +93,16 @@ MYSQL_DB=dummy_base
 6. Define all necessary environment variables in the Environment tab
 7. (Optional) Add a `.render.yaml` if needed for config as code
 
+## 🧪 Dev Testing Locally
+```bash
+# Set env vars
+$env:MYSQL_USER = "root"
+$env:MYSQL_PASSWORD = "diogo1"
+$env:MYSQL_HOST = "localhost"
+$env:MYSQL_DB = "dummy_base"
+
+# Run endpoints
+flask run
+# or
+streamlit run connection2.py  # for local visualizations
+```
