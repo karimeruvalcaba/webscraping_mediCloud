@@ -1,0 +1,6 @@
+Flask
+pandas
+sqlalchemy
+pymysql
+xlrd
+selenium
