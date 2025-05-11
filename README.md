@@ -82,11 +82,12 @@ MYSQL_DB=dummy_base
 3. Link your GitHub repository
 4. Set the build command:
 
-   ```bash
+```bash
    pip install -r requirements.txt
 ```
 5. Set the start command:
-   ```bash
+
+```bash
    gunicorn app:app
 ```
 6. Define all necessary environment variables in the Environment tab
