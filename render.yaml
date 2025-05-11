@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: webscrape-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: MYSQL_HOST
+        value: 6.tcp.ngrok.io
+      - key: MYSQL_PORT
+        value: 15336
+      - key: MYSQL_USER
+        value: root
+      - key: MYSQL_PASSWORD
+        value: diogo1
+      - key: MYSQL_DB
+        value: dummy_base
+

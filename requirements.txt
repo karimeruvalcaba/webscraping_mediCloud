@@ -5,3 +5,4 @@ pymysql
 xlrd
 selenium
 gunicorn
+psycopg2-binary
