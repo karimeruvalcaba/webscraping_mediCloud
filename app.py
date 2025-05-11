@@ -23,12 +23,13 @@ def scrape():
         }), 500
 
 @app.route("/run-insert")
-def insert():
+def run_insert():
     try:
-        insert_prescriptions()
-        return jsonify({"status": "Insert done ✅"})
+        results = insert_prescriptions()
+        return jsonify(results)
     except Exception as e:
-        return jsonify({"status": "Insert failed", "error": str(e)})
+        return jsonify({"status": "Insert failed", "error": str(e)}), 500
+
     
 @app.route("/list-files")
 def list_files():
