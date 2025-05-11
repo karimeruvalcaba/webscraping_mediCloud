@@ -62,7 +62,7 @@ CREATE TABLE estadisticas_externas_lab (
   cantidad INT,
   UNIQUE (archivo, tipo, medicamento)
 );
-````
+```
 
 ## 🔐 Environment Variables
 
@@ -74,7 +74,7 @@ MYSQL_PASSWORD=diogo1
 MYSQL_HOST=localhost    # or your ngrok host
 MYSQL_PORT=3306         # or your ngrok port
 MYSQL_DB=dummy_base
-````
+```
 
 ## ☁️ Deployment on Render
 
