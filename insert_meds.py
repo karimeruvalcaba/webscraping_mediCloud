@@ -11,12 +11,13 @@ database = os.getenv("MYSQL_DB")
 
 engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}")
 
-# 🧱 Ensure table exists
+# 🧱 Ensure table exists (now with 'institucion')
 create_table_sql = """
 CREATE TABLE IF NOT EXISTS Medicinas_externas_lab (
   id INT AUTO_INCREMENT PRIMARY KEY,
   archivo VARCHAR(255),
   tipo ENUM('top', 'bottom'),
+  institucion VARCHAR(100),
   medicamento VARCHAR(255),
   cantidad INT,
   UNIQUE (archivo, tipo, medicamento)
@@ -90,6 +91,7 @@ def insert_prescriptions(download_dir="Webscrapping"):
             top_df = pd.DataFrame({
                 "archivo": file,
                 "tipo": "top",
+                "institucion": institucion,
                 "medicamento": top10.index,
                 "cantidad": top10.values
             })
@@ -103,10 +105,11 @@ def insert_prescriptions(download_dir="Webscrapping"):
             bottom_df = pd.DataFrame({
                 "archivo": file,
                 "tipo": "bottom",
+                "institucion": institucion,
                 "medicamento": bottom10.index,
                 "cantidad": bottom10.values
             })
-            bottom_df.to_sql("Medicinas_externas_lab", engine, if_exists="append", index=False)
+            bottom_df.to_sql("medicinas_externas_lab", engine, if_exists="append", index=False)
             result["bottom"] = "✅ Inserted"
         else:
             result["bottom"] = "⏭️ Already exists"
