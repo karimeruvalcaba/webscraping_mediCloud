@@ -32,7 +32,7 @@ def run_scraper(download_dir="Webscrapping"):
         res = requests.get(url)
         soup = BeautifulSoup(res.text, "html.parser")
 
-        # Institution name
+        # Institution name pleasee
         org_link = soup.find("a", href=re.compile("/busca/organization/"))
         institucion = org_link.text.strip().upper() if org_link else "Desconocida"
         print(f"🏥 Institution: {institucion}")
