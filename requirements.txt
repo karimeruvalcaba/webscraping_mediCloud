@@ -1,5 +1,9 @@
-flask
-pandas
-xlrd
+Flask
 gunicorn
 requests
+beautifulsoup4
+pandas
+sqlalchemy
+pymysql
+xlrd
+cryptography
