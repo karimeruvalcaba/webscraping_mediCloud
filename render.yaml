@@ -6,9 +6,9 @@ services:
     startCommand: gunicorn app:app
     envVars:
       - key: MYSQL_HOST
-        value: 2.tcp.ngrok.io
+        value: 6.tcp.ngrok.io
       - key: MYSQL_PORT
-        value: 16095
+        value: 14687
       - key: MYSQL_USER
         value: root
       - key: MYSQL_PASSWORD
