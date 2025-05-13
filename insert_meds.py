@@ -11,7 +11,7 @@ database = os.getenv("MYSQL_DB")
 
 engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}")
 
-# 🧱 Ensure table exists (now with 'institucion')
+# 🧱 Ensure table exists (includes fecha_archivo)
 create_table_sql = """
 CREATE TABLE IF NOT EXISTS Medicinas_externas_lab (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS Medicinas_externas_lab (
   institucion VARCHAR(100),
   medicamento VARCHAR(255),
   cantidad INT,
+  fecha_archivo DATE,
   UNIQUE (archivo, tipo, medicamento)
 )
 """
@@ -46,13 +47,10 @@ def insert_prescriptions(download_dir="Webscrapping"):
             with open(meta_path, "r", encoding="utf-8") as f:
                 institucion = f.read().strip()
 
-        result = {"institution": institucion}
-
         try:
             df = pd.read_excel(file_path, engine="xlrd", header=3)
         except Exception as e:
-            result["error"] = f"Excel read error: {e}"
-            summary[file] = result
+            summary[file] = {"error": f"Excel read error: {e}", "institution": institucion}
             continue
 
         df = df.loc[:, ~df.columns.astype(str).str.startswith("UNNAMED", na=False)]
@@ -69,9 +67,21 @@ def insert_prescriptions(download_dir="Webscrapping"):
         ]
         df.rename(columns={"CANTIDAD  PRESCRITA": "CANTIDAD PRESCRITA"}, inplace=True)
 
+        # 🟡 Extract date from inside the file
+        fecha_archivo = None
+        for col in df.columns:
+            if "FECHA" in col:
+                fecha_archivo = pd.to_datetime(df[col].dropna().iloc[0], errors='coerce').date()
+                break
+        if not fecha_archivo:
+            fecha_archivo = pd.to_datetime("2000-01-01").date()  # fallback
+
         if "DESCRIPCIÓN DEL MEDICAMENTO" not in df.columns or "CANTIDAD PRESCRITA" not in df.columns:
-            result["error"] = "Missing required columns"
-            summary[file] = result
+            summary[file] = {
+                "error": "Missing required columns",
+                "institution": institucion,
+                "fecha_archivo": str(fecha_archivo)
+            }
             continue
 
         grouped = df.groupby("DESCRIPCIÓN DEL MEDICAMENTO")["CANTIDAD PRESCRITA"].sum()
@@ -86,6 +96,8 @@ def insert_prescriptions(download_dir="Webscrapping"):
                 {"archivo": file}
             ).scalar() > 0
 
+        result = {"institution": institucion, "fecha_archivo": str(fecha_archivo)}
+
         if not top_exists:
             top10 = grouped.sort_values(ascending=False).head(10)
             top_df = pd.DataFrame({
@@ -93,7 +105,8 @@ def insert_prescriptions(download_dir="Webscrapping"):
                 "tipo": "top",
                 "institucion": institucion,
                 "medicamento": top10.index,
-                "cantidad": top10.values
+                "cantidad": top10.values,
+                "fecha_archivo": fecha_archivo
             })
             top_df.to_sql("Medicinas_externas_lab", engine, if_exists="append", index=False)
             result["top"] = "✅ Inserted"
@@ -107,7 +120,8 @@ def insert_prescriptions(download_dir="Webscrapping"):
                 "tipo": "bottom",
                 "institucion": institucion,
                 "medicamento": bottom10.index,
-                "cantidad": bottom10.values
+                "cantidad": bottom10.values,
+                "fecha_archivo": fecha_archivo
             })
             bottom_df.to_sql("Medicinas_externas_lab", engine, if_exists="append", index=False)
             result["bottom"] = "✅ Inserted"
