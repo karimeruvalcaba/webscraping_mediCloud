@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from sqlalchemy import create_engine, text
 
-# 🧠 Load MySQL connection from environment variables
+# 🧠 Load MySQL connection from environment variables pls work
 user = os.getenv("MYSQL_USER")
 password = os.getenv("MYSQL_PASSWORD")
 host = os.getenv("MYSQL_HOST")
