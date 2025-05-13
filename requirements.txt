@@ -1,9 +1,3 @@
-Flask
-gunicorn
-requests
-beautifulsoup4
+flask
 pandas
-sqlalchemy
-pymysql
 xlrd
-cryptography

@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, send_file
 from webscrape import run_scraper
-from insert_meds import insert_prescriptions
-import os 
+from fetch_meds import fetch_all_prescriptions  # 🧠 pulls logic from fetch_meds.py
+import os
 
 app = Flask(__name__)
 
@@ -22,15 +22,14 @@ def scrape():
             "trace": traceback.format_exc()
         }), 500
 
-@app.route("/run-insert")
-def run_insert():
+@app.route("/medicinas-externas")
+def get_medicinas_externas():
     try:
-        results = insert_prescriptions()
-        return jsonify(results)
+        data = fetch_all_prescriptions()
+        return jsonify(data)
     except Exception as e:
-        return jsonify({"status": "Insert failed", "error": str(e)}), 500
+        return jsonify({"status": "Fetch failed", "error": str(e)}), 500
 
-    
 @app.route("/list-files")
 def list_files():
     folder = "Webscrapping"
@@ -47,4 +46,3 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
-

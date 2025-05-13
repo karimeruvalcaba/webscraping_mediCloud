@@ -3,6 +3,7 @@
 This project automates the download, extraction, and analysis of medical prescription datasets from [datos.gob.mx](https://datos.gob.mx/), specifically from the "Recursos Materiales Recetas" dataset.
 
 It’s deployed on [Render](https://render.com) and designed to:
+
 - 🔽 Scrape new `.xls` prescription files as they are published
 - 🏥 Capture institution metadata (like "INNN")
 - 💊 Insert Top 10 and Bottom 10 most prescribed medications into a MySQL database
@@ -12,6 +13,7 @@ It’s deployed on [Render](https://render.com) and designed to:
 ---
 
 ## 🗂 Folder Structure
+
 ```
 📁 Webscrapping/
 │   ├── Recetas_Emitidas_Abril-Diciembre_2023.xls
@@ -26,21 +28,23 @@ It’s deployed on [Render](https://render.com) and designed to:
 └── .render.yaml       # Deployment config
 ```
 
-
 ## 🚀 Endpoints
 
 ### `/run-scrape`
+
 - Downloads all `.xls` files from datasets titled "Recetas Emitidas"
 - Saves them in `Webscrapping/`
 - Stores institution name in `.meta.txt`
 
 ### `/run-insert`
+
 - Reads `.xls` files from `Webscrapping/`
 - Cleans + normalizes columns
 - Inserts top/bottom 10 prescribed medications into a MySQL table
 - Skips records that already exist
 
 Returns JSON like:
+
 ```json
 {
   "Recetas_Emitidas_2024.xls": {
@@ -88,11 +92,13 @@ MYSQL_DB=dummy_base
 ```bash
    pip install -r requirements.txt
 ```
+
 5. Set the start command:
 
 ```bash
    gunicorn app:app
 ```
+
 6. Define all necessary environment variables in the Environment tab
 7. (Optional) Add a `.render.yaml` if needed for config as code
 
@@ -103,26 +109,34 @@ Use [Ngrok](https://ngrok.com/) to expose your local MySQL database to the inter
 ### ✅ Steps
 
 1. **Download & Install Ngrok**
+
    - Go to [https://ngrok.com/download](https://ngrok.com/download)
    - Unzip it and place the binary somewhere in your `PATH`
-
-2. **Authenticate Ngrok (one-time only)**  
+2. **Authenticate Ngrok (one-time only)**
    Replace `YOUR_TOKEN` with your auth token from https://dashboard.ngrok.com/get-started/setup
+
 ```bash
-   ngrok config add-authtoken YOUR_TOKEN
+ngrok config add-authtoken YOUR_TOKEN
 ```
+
 3. **Expose MySQL port (3306) using TCP**
+
 ```bash
-   ngrok tcp 3306
+ngrok tcp 3306
 ```
+
 You will get an output like:
+
 ```bash
-   Forwarding                    tcp://6.tcp.ngrok.io:15336 -> localhost:3306
+Forwarding                    tcp://6.tcp.ngrok.io:15336 -> localhost:3306
 ```
+
 Copy this address — it’ll be used in your environment variables.
 
 ### 🛠 Example Env Vars for Render
+
 In the Render dashboard, set your environment variables like this:
+
 ```ini
   MYSQL_HOST=6.tcp.ngrok.io
   MYSQL_PORT=15336
@@ -130,9 +144,11 @@ In the Render dashboard, set your environment variables like this:
   MYSQL_PASSWORD=your_local_mysql_password
   MYSQL_DB=dummy_base
 ```
+
 🧠 Note: Your tunnel must stay open while Render is running /run-insert. Use a paid plan or background service if you want to persist it.
 
 ## 🧪 Dev Testing Locally
+
 ```bash
 # Set env vars
 $env:MYSQL_USER = "root"
