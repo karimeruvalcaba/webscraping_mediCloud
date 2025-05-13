@@ -1,39 +1,46 @@
 import os
 import pandas as pd
+import unicodedata
+
+def normalize_column(col):
+    raw = str(col)
+    normalized = unicodedata.normalize("NFKD", raw)
+    clean = "".join(c for c in normalized if not unicodedata.combining(c))
+    return clean.upper().strip().replace("  ", " ")
 
 def extract_from_file(file_path, institucion):
     try:
         df = pd.read_excel(file_path, engine="xlrd", header=3)
-    except Exception:
+    except Exception as e:
+        print(f"❌ Failed to read {file_path}: {e}")
         return []
+
+    print(f"🔍 Raw columns from {file_path}: {df.columns.tolist()}")
 
     df = df.loc[:, ~df.columns.astype(str).str.startswith("UNNAMED", na=False)]
     df = df.loc[:, ~df.columns.duplicated()]
-    df.columns = [
-        str(col).upper().strip()
-        .replace("Ò", "Ó")
-        .replace("À", "Á")
-        .replace("È", "É")
-        .replace("Ì", "Í")
-        .replace("Ù", "Ú")
-        .replace("  ", " ")
-        for col in df.columns
-    ]
+    df.columns = [normalize_column(col) for col in df.columns]
+
+    print(f"🧠 Normalized columns from {file_path}: {df.columns.tolist()}")
+
     df.rename(columns={"CANTIDAD  PRESCRITA": "CANTIDAD PRESCRITA"}, inplace=True)
 
-    # Get fecha from column
-    fecha_archivo = None
-    for col in df.columns:
-        if "FECHA" in col:
-            fecha_archivo = pd.to_datetime(df[col].dropna().iloc[0], errors='coerce').date()
-            break
-    if not fecha_archivo:
-        fecha_archivo = pd.to_datetime("2000-01-01").date()
+    # ✅ Extract year from FECHA DE EMISION column
+    fecha_archivo = "2000-01-01"
+    if "FECHA DE EMISION" in df.columns:
+        non_empty = df["FECHA DE EMISION"].dropna()
+        if not non_empty.empty:
+            fecha = pd.to_datetime(non_empty.iloc[0], errors="coerce")
+            if not pd.isna(fecha):
+                year = fecha.year
+                fecha_archivo = f"{year}-01-01"
 
-    if "DESCRIPCIÓN DEL MEDICAMENTO" not in df.columns or "CANTIDAD PRESCRITA" not in df.columns:
+    # ✅ Validate required columns exist
+    if "DESCRIPCION DEL MEDICAMENTO" not in df.columns or "CANTIDAD PRESCRITA" not in df.columns:
+        print(f"⚠️ Missing columns in {file_path}")
         return []
 
-    grouped = df.groupby("DESCRIPCIÓN DEL MEDICAMENTO")["CANTIDAD PRESCRITA"].sum()
+    grouped = df.groupby("DESCRIPCION DEL MEDICAMENTO")["CANTIDAD PRESCRITA"].sum()
 
     top10 = grouped.sort_values(ascending=False).head(10)
     bottom10 = grouped.sort_values(ascending=True).head(10)
@@ -48,7 +55,7 @@ def extract_from_file(file_path, institucion):
                 "institucion": institucion,
                 "medicamento": medicamento,
                 "cantidad": int(cantidad),
-                "fecha_archivo": str(fecha_archivo)
+                "fecha_archivo": fecha_archivo
             })
 
     return result
@@ -72,6 +79,9 @@ def fetch_all_prescriptions(download_dir="Webscrapping"):
                 institucion = f.read().strip()
 
         meds = extract_from_file(file_path, institucion)
-        all_data.extend(meds)
+
+        # ✅ Defensive: in case extract returns None
+        if meds:
+            all_data.extend(meds)
 
     return all_data
