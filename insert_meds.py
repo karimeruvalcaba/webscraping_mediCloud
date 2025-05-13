@@ -95,7 +95,7 @@ def insert_prescriptions(download_dir="Webscrapping"):
                 "medicamento": top10.index,
                 "cantidad": top10.values
             })
-            top_df.to_sql("medicinas_externas_lab", engine, if_exists="append", index=False)
+            top_df.to_sql("Medicinas_externas_lab", engine, if_exists="append", index=False)
             result["top"] = "✅ Inserted"
         else:
             result["top"] = "⏭️ Already exists"
@@ -109,7 +109,7 @@ def insert_prescriptions(download_dir="Webscrapping"):
                 "medicamento": bottom10.index,
                 "cantidad": bottom10.values
             })
-            bottom_df.to_sql("medicinas_externas_lab", engine, if_exists="append", index=False)
+            bottom_df.to_sql("Medicinas_externas_lab", engine, if_exists="append", index=False)
             result["bottom"] = "✅ Inserted"
         else:
             result["bottom"] = "⏭️ Already exists"
