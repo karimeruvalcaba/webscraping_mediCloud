@@ -1,6 +1,0 @@
-from fetch_meds import fetch_all_prescriptions
-import json
-
-if __name__ == "__main__":
-    data = fetch_all_prescriptions()
-    print(json.dumps(data, indent=2, ensure_ascii=False))
