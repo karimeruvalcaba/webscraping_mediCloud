@@ -1,27 +1,27 @@
 # 💊 Prescription Scraping API
 
-Este proyecto es una API en Flask que automatiza la descarga de archivos `.xls` desde el portal de Datos Abiertos del Gobierno de México. Extrae información de recetas médicas emitidas, las limpia y expone los datos más relevantes mediante endpoints JSON.
+This project is a Flask API that automates the download of `.xls` files from the Mexican Government's open data portal. It extracts prescription data issued by public institutions, cleans the data, and exposes the most and least prescribed medications through JSON-based endpoints.
 
 ---
 
-## 🚀 ¿Qué hace esta API?
+## 🚀 What Does This API Do?
 
-1. **Descarga automática de archivos `.xls`** con datos de recetas emitidas.
-2. **Guarda metadatos** como la institución emisora en archivos `.meta.txt`.
-3. **Procesa los archivos** para obtener el top 10 y bottom 10 de medicamentos más recetados.
-4. **Expone la información limpia** vía endpoints REST.
+1. **Automatically downloads `.xls` files** from an official dataset (e.g. INNN).
+2. **Stores metadata** like the issuing institution in `.meta.txt` files.
+3. **Processes downloaded files** using Pandas: cleans headers and aggregates data.
+4. **Exposes cleaned and aggregated information** through a RESTful API.
 
 ---
 
-## 🔗 Endpoints disponibles
+## 🔗 Available Endpoints
 
-| Método | Ruta                      | Descripción                                               |
-|--------|---------------------------|-----------------------------------------------------------|
-| GET    | `/`                       | Verifica que la API esté corriendo                        |
-| GET    | `/run-scrape`             | Ejecuta el scraper y descarga los archivos `.xls`         |
-| GET    | `/medicinas-externas`     | Devuelve los medicamentos más/menos recetados             |
-| GET    | `/list-files`             | Lista los archivos descargados en el directorio local     |
-| GET    | `/download/<filename>`    | Permite descargar un archivo específico                   |
+| Method | Route                     | Description                                                |
+|--------|---------------------------|------------------------------------------------------------|
+| GET    | `/`                       | Basic health check                                          |
+| GET    | `/run-scrape`             | Scrapes and downloads `.xls` files from the dataset        |
+| GET    | `/medicinas-externas`     | Returns the top/bottom 10 most prescribed medications      |
+| GET    | `/list-files`             | Lists all downloaded files in the local directory          |
+| GET    | `/download/<filename>`    | Downloads a specific `.xls` or `.meta.txt` file            |
 
 ---
 
@@ -43,29 +43,41 @@ Este proyecto es una API en Flask que automatiza la descarga de archivos `.xls` 
 
 ## 🚀 Endpoints
 
-### `/run-scrape`
 
-- Downloads all `.xls` files from datasets titled "Recetas Emitidas"
-- Saves them in `Webscrapping/`
-- Stores institution name in `.meta.txt`
+---
 
-### `/run-insert`
+## 📥 Endpoint: `/run-scrape`
 
-- Reads `.xls` files from `Webscrapping/`
-- Cleans + normalizes columns
-- Inserts top/bottom 10 prescribed medications into a MySQL table
-- Skips records that already exist
+- Scrapes data from: [datos.gob.mx](https://historico.datos.gob.mx/busca/dataset/recursos-materiales-recetas)
+- Downloads `.xls` files only (not `.csv`)
+- Saves them in the `Webscrapping/` folder
+- Generates a `.meta.txt` file for each `.xls`, containing the institution name
 
-Returns JSON like:
+---
+
+## 📊 Endpoint: `/medicinas-externas`
+
+- Processes all `.xls` files in the `Webscrapping/` directory
+- Cleans poorly formatted or duplicated columns
+- Normalizes column headers (e.g., fixes `"CANTIDAD  PRESCRITA"`)
+- Groups by medication and returns:
+  - **Top 10 most prescribed**
+  - **Bottom 10 least prescribed**
+
+Sample JSON response:
 
 ```json
-{
-  "Recetas_Emitidas_2024.xls": {
-    "institution": "INNN",
-    "top": "✅ Inserted",
-    "bottom": "⏭️ Already exists"
-  }
-}
+[
+  {
+    "archivo": "Recetas_Emitidas_2024.xls",
+    "tipo": "top",
+    "institucion": "INSTITUTO NACIONAL DE NEUROLOGÍA Y NEUROCIRUGÍA",
+    "medicamento": "PARACETAMOL",
+    "cantidad": 13782,
+    "fecha_archivo": "2024-01-01"
+  },
+  ...
+]
 ```
 
 ## ☁️ Deployment on Render
@@ -87,6 +99,4 @@ Returns JSON like:
 
 # Run endpoints
 flask run
-# or
-streamlit run connection2.py  # for local visualizations
 ```
