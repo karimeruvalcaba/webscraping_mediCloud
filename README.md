@@ -98,5 +98,7 @@ Sample JSON response:
 ```
 
 # Run endpoints
+```
+#Run flask locally
 flask run
 ```
