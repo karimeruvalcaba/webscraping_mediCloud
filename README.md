@@ -37,8 +37,7 @@ This project is a Flask API that automates the download of `.xls` files from the
 ├── app.py             # Flask app with endpoints
 ├── webscrape.py       # Scrapes files and metadata using BeautifulSoup
 ├── insert_meds.py     # Cleans + loads data into MySQL
-├── requirements.txt   # All dependencies
-└── .render.yaml       # Deployment config
+└── requirements.txt   # All dependencies
 ```
 
 ## 🚀 Endpoints
