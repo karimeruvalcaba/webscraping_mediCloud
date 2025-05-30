@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, send_file
-from webscrape import run_scraper
-from fetch_meds import fetch_all_prescriptions  # 🧠 pulls logic from fetch_meds.py
+from webscrape import run_scraper as run_meds_scraper
+from webscrapeINRPRF import run_scraper as run_studies_scraper
+from fetch_meds import fetch_all_prescriptions as fetch_meds_data
+from fetch_studies import fetch_all_prescriptions as fetch_studies_data
 import os
 
 app = Flask(__name__)
@@ -9,15 +11,28 @@ app = Flask(__name__)
 def index():
     return "✅ Prescription scraping API is up."
 
-@app.route("/run-scrape")
-def scrape():
+@app.route("/run-scrape-meds")
+def scrape_meds():
     try:
-        run_scraper()
-        return jsonify({"status": "Scraping done ✅"})
+        run_meds_scraper()
+        return jsonify({"status": "Scraping meds done ✅"})
     except Exception as e:
         import traceback
         return jsonify({
-            "status": "Scraping failed ❌",
+            "status": "Scraping meds failed ❌",
+            "error": str(e),
+            "trace": traceback.format_exc()
+        }), 500
+
+@app.route("/run-scrape-studies")
+def scrape_studies():
+    try:
+        run_studies_scraper()
+        return jsonify({"status": "Scraping studies done ✅"})
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "status": "Scraping studies failed ❌",
             "error": str(e),
             "trace": traceback.format_exc()
         }), 500
@@ -25,10 +40,18 @@ def scrape():
 @app.route("/medicinas-externas")
 def get_medicinas_externas():
     try:
-        data = fetch_all_prescriptions()
+        data = fetch_meds_data()
         return jsonify(data)
     except Exception as e:
-        return jsonify({"status": "Fetch failed", "error": str(e)}), 500
+        return jsonify({"status": "Fetch meds failed", "error": str(e)}), 500
+
+@app.route("/estudios-externos")
+def get_estudios_externos():
+    try:
+        data = fetch_studies_data()
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"status": "Fetch studies failed", "error": str(e)}), 500
 
 @app.route("/list-files")
 def list_files():
