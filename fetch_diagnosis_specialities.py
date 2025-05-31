@@ -25,6 +25,7 @@ def extract_from_file(file_path, institucion):
     df = df.loc[:, ~df.columns.astype(str).str.startswith("UNNAMED", na=False)]
     df = df.loc[:, ~df.columns.duplicated()]
     df.columns = [normalize_column(col) for col in df.columns]
+    df["FECHA_PARSEADA"] = pd.to_datetime(df["FECHA_INGRESO"], errors="coerce", dayfirst=True)
 
     fecha_archivo = "2000-01-01"
     if "FECHA_INGRESO" in df.columns:
@@ -51,6 +52,13 @@ def extract_from_file(file_path, institucion):
 
         for tipo, grupo in [("top", top10), ("bottom", bottom10)]:
             for nombre, cantidad in grupo.items():
+                fechas = df[df[columna] == nombre]["FECHA_PARSEADA"].dropna()
+
+                fechas_recetadas = {}
+                for fecha in fechas:
+                    mes = fecha.strftime("%m")
+                    fechas_recetadas[mes] = fechas_recetadas.get(mes, 0) + 1
+
                 resultados.append({
                     "archivo": os.path.basename(file_path),
                     "tipo": tipo,
@@ -58,7 +66,8 @@ def extract_from_file(file_path, institucion):
                     "fuente": fuente,
                     "nombre": nombre,
                     "cantidad": int(cantidad),
-                    "fecha_archivo": fecha_archivo
+                    "fecha_archivo": fecha_archivo,
+                    "fechas_recetadas": fechas_recetadas
                 })
 
     return resultados
