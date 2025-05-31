@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import unicodedata
 import json
+import re
 from collections import defaultdict
 
 def normalize_column(col):
@@ -31,21 +32,40 @@ def extract_from_file(file_path, institucion, fechas_dict, cantidades_por_mes):
             cantidad = row.get("CANTIDAD PRESCRITA", 0)
 
             if pd.notnull(fecha) and pd.notnull(cantidad):
+                fecha_str_raw = str(fecha).strip()
+
+                # Pre-sanitize: Reject stuff with 0 or >12 as months
+                if re.match(r"^\d{4}-\d{2}-\d{2}", fecha_str_raw):  # ISO: 2023-12-25
+                    safe_to_parse = True
+                elif re.match(r"^\d{1,2}/\d{1,2}/\d{4}$", fecha_str_raw):
+                    # Extra check for values like 28/0/2023 or 1404/2023
+                    parts = fecha_str_raw.split("/")
+                    try:
+                        day, month, year = map(int, parts)
+                        safe_to_parse = 1 <= month <= 12
+                    except:
+                        safe_to_parse = False
+                else:
+                    safe_to_parse = False
+
+                if not safe_to_parse:
+                    print(f"⚠️ Skipping toxic date for {med}: {fecha_str_raw}")
+                    continue
+
                 try:
-                    parsed = pd.to_datetime(str(fecha), errors="coerce", dayfirst=True)
+                    parsed = pd.to_datetime(fecha_str_raw, errors="coerce", dayfirst=True)
                     if pd.isna(parsed):
-                        print(f"⚠️ Invalid date for {med}: {fecha}")
+                        print(f"⚠️ Still couldn’t parse legit-looking date for {med}: {fecha_str_raw}")
                         continue
 
                     fecha_str = str(parsed.date())
                     fechas_dict[med].add(fecha_str)
                     fecha_archivo_dict[med].append(fecha_str)
 
-                    # Add month count here
-                    month_str = parsed.strftime("%m")  # e.g., "01"
+                    month_str = parsed.strftime("%m")
                     cantidades_por_mes[med][month_str] += int(cantidad)
                 except Exception as e:
-                    print(f"❌ Unexpected error for {med} on fecha '{fecha}': {e}")
+                    print(f"❌ Fatal parse error on '{fecha_str_raw}' for {med}: {e}")
                     continue
 
     if "DESCRIPCION DEL MEDICAMENTO" not in df.columns or "CANTIDAD PRESCRITA" not in df.columns:
