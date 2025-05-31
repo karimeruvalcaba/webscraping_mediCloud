@@ -5,6 +5,14 @@ import json
 import re
 from collections import defaultdict
 
+def is_parseable_date(fecha):
+    try:
+        # Try casting to datetime safely without side effects
+        pd.to_datetime(fecha, errors="raise", dayfirst=True)
+        return True
+    except:
+        return False
+
 def normalize_column(col):
     raw = str(col)
     normalized = unicodedata.normalize("NFKD", raw)
@@ -32,30 +40,14 @@ def extract_from_file(file_path, institucion, fechas_dict, cantidades_por_mes):
             cantidad = row.get("CANTIDAD PRESCRITA", 0)
 
             if pd.notnull(fecha) and pd.notnull(cantidad):
-                fecha_str_raw = str(fecha).strip()
-
-                # Pre-sanitize: Reject stuff with 0 or >12 as months
-                if re.match(r"^\d{4}-\d{2}-\d{2}", fecha_str_raw):  # ISO: 2023-12-25
-                    safe_to_parse = True
-                elif re.match(r"^\d{1,2}/\d{1,2}/\d{4}$", fecha_str_raw):
-                    # Extra check for values like 28/0/2023 or 1404/2023
-                    parts = fecha_str_raw.split("/")
-                    try:
-                        day, month, year = map(int, parts)
-                        safe_to_parse = 1 <= month <= 12
-                    except:
-                        safe_to_parse = False
-                else:
-                    safe_to_parse = False
-
-                if not safe_to_parse:
-                    print(f"⚠️ Skipping toxic date for {med}: {fecha_str_raw}")
+                if not is_parseable_date(fecha):
+                    print(f"⚠️ Skipping toxic date for {med}: {fecha}")
                     continue
 
                 try:
-                    parsed = pd.to_datetime(fecha_str_raw, errors="coerce", dayfirst=True)
+                    parsed = pd.to_datetime(fecha, errors="coerce", dayfirst=True)
                     if pd.isna(parsed):
-                        print(f"⚠️ Still couldn’t parse legit-looking date for {med}: {fecha_str_raw}")
+                        print(f"⚠️ Could not parse clean-looking date for {med}: {fecha}")
                         continue
 
                     fecha_str = str(parsed.date())
@@ -65,7 +57,7 @@ def extract_from_file(file_path, institucion, fechas_dict, cantidades_por_mes):
                     month_str = parsed.strftime("%m")
                     cantidades_por_mes[med][month_str] += int(cantidad)
                 except Exception as e:
-                    print(f"❌ Fatal parse error on '{fecha_str_raw}' for {med}: {e}")
+                    print(f"❌ Unexpected parsing crash for {med} — {fecha}: {e}")
                     continue
 
     if "DESCRIPCION DEL MEDICAMENTO" not in df.columns or "CANTIDAD PRESCRITA" not in df.columns:
