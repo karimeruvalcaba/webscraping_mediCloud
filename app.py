@@ -224,6 +224,13 @@ def diagnosticos_por_mes():
                     "fechaArchivo": row["fecha_archivo"],
                     "fechas_recetadas": row.get("fechas_recetadas", {})
                 })
+        for row in all_data:
+            if row["fuente"] == "especialidad":
+                enriched.append({
+                    "nombre": row["nombre"],
+                    "fechaArchivo": row["fecha_archivo"],
+                    "fechas_recetadas": row.get("fechas_recetadas", {})
+                })
 
         return jsonify(enriched)
 
