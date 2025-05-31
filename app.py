@@ -62,7 +62,7 @@ def scrape_egresos():
 @app.route("/medicinas-externas")
 def get_medicinas_externas():
     try:
-        all_data, _, _ = fetch_meds_data()
+        all_data, _ = fetch_meds_data()
 
         # Return only the required fields, no 'id'
         enriched = []
@@ -172,7 +172,7 @@ def download_egresos_file(filename):
 @app.route("/meds-por-mes")
 def meds_por_mes():
     try:
-        all_data, fechas_map, cantidades_por_mes = fetch_meds_data()  # update to return the new data
+        all_data, cantidades_por_mes = fetch_meds_data()  # update to return the new data
         enriched = []
         for row in all_data:
             med = row["medicamento"].strip().upper()

@@ -32,7 +32,11 @@ def extract_from_file(file_path, institucion, fechas_dict, cantidades_por_mes):
 
             if pd.notnull(fecha) and pd.notnull(cantidad):
                 try:
-                    parsed = pd.to_datetime(str(fecha), errors="raise", dayfirst=True)
+                    parsed = pd.to_datetime(str(fecha), errors="coerce", dayfirst=True)
+                    if pd.isna(parsed):
+                        print(f"⚠️ Invalid date for {med}: {fecha}")
+                        continue
+
                     fecha_str = str(parsed.date())
                     fechas_dict[med].add(fecha_str)
                     fecha_archivo_dict[med].append(fecha_str)
@@ -40,8 +44,9 @@ def extract_from_file(file_path, institucion, fechas_dict, cantidades_por_mes):
                     # Add month count here
                     month_str = parsed.strftime("%m")  # e.g., "01"
                     cantidades_por_mes[med][month_str] += int(cantidad)
-                except Exception:
-                    print(f"⚠️ Invalid date for {med}: {fecha}")
+                except Exception as e:
+                    print(f"❌ Unexpected error for {med} on fecha '{fecha}': {e}")
+                    continue
 
     if "DESCRIPCION DEL MEDICAMENTO" not in df.columns or "CANTIDAD PRESCRITA" not in df.columns:
         print(f"⚠️ Missing columns in {file_path}")
@@ -92,6 +97,7 @@ def fetch_all_prescriptions(download_dir="Webscrapping"):
         if meds:
             all_data.extend(meds)
 
+    """
     fechas_final = {
         med: sorted(list(fechas)) for med, fechas in fechas_recetadas_dict.items()
     }
@@ -99,4 +105,5 @@ def fetch_all_prescriptions(download_dir="Webscrapping"):
     with open("fechas_recetadas.json", "w", encoding="utf-8") as f:
         json.dump(fechas_final, f, indent=2, ensure_ascii=False)
 
-    return all_data, fechas_final, cantidades_por_mes
+    """
+    return all_data, cantidades_por_mes
